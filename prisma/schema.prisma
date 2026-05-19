@@ -1,0 +1,120 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Get a free hosted Postgres database in seconds: `npx create-db`
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+// Models based on the provided diagram. Field names use camelCase
+// and are mapped to the original snake_case column names where appropriate.
+
+enum PoliticaAbrangencia {
+  MUNICIPAL
+  ESTADUAL
+  FEDERAL
+}
+
+enum TipoPerfil {
+  ADMIN
+  ATENDIMENTO
+  USUARIO
+}
+
+enum TipoFicha {
+  NORMAL
+  PRIORITARIA
+}
+
+enum StatusFicha {
+  PENDENTE
+  CONCLUIDA
+  CANCELADA
+}
+
+model Ubs {
+  id           String    @id @default(uuid()) @db.Uuid
+  nome         String
+  latitude     Decimal?  @db.Decimal(10, 6)
+  longitude    Decimal?  @db.Decimal(10, 6)
+  bairro       String
+  municipio    String
+  politicaAtendimento PoliticaAbrangencia? @map("politica_atendimento")
+  criadoEm     DateTime? @map("criado_em") @default(now())
+  atualizadoEm DateTime? @map("atualizado_em")
+  deletadoEm   DateTime? @map("deletado_em")
+
+  configuracoes ConfiguracaoAgenda[]
+
+  @@map("ubs")
+}
+
+model Usuario {
+  id            String  @id @default(uuid()) @db.Uuid
+  nomeCompleto  String  @map("nome_completo")
+  nomeSocial    String? @map("nome_social")
+  nomeUsuario   String? @map("nome_usuario")
+  login         String
+  email         String?
+  cpf           String?
+  cns           String?
+  senhaHash     String? @map("senha_hash")
+  idMaquina     String? @map("id_maquina")
+  perfil        TipoPerfil? 
+  logradouro    String?
+  bairro        String?
+  cep           String?
+  municipio     String?
+  uf            String?
+  criadoEm      DateTime? @map("criado_em") @default(now())
+  atualizadoEm  DateTime? @map("atualizado_em")
+  deletadoEm    DateTime? @map("deletado_em")
+
+  fichas        Ficha[]
+
+  @@map("usuarios")
+}
+
+model ConfiguracaoAgenda {
+  id               String  @id @default(uuid()) @db.Uuid
+  idUbs            String  @map("id_ubs") @db.Uuid
+  especialidade    String
+  horarioAbertura  String  @map("horario_abertura")
+  horarioFechamento String @map("horario_fechamento")
+  cotaPrioritaria  Int?    @map("cota_prioritaria")
+  cotaGeral        Int?    @map("cota_geral")
+  criadoEm         DateTime? @map("criado_em") @default(now())
+  atualizadoEm     DateTime? @map("atualizado_em")
+  deletadoEm       DateTime? @map("deletado_em")
+
+  ubs Ubs @relation(fields: [idUbs], references: [id])
+  fichas Ficha[]
+
+  @@map("configuracoes_agenda")
+}
+
+model Ficha {
+  id                    String   @id @default(uuid()) @db.Uuid
+  idUsuario             String   @map("id_usuario") @db.Uuid
+  idConfiguracaoAgenda  String   @map("id_configuracao_agenda") @db.Uuid
+  dataAtendimento       DateTime @map("data_atendimento")
+  tipo                  TipoFicha?
+  justificativa         String?
+  status                StatusFicha?
+  auditoriaIdMaquina    String?  @map("auditoria_id_maquina")
+  auditoriaIp           String?  @map("auditoria_ip")
+  criadoEm              DateTime? @map("criado_em") @default(now())
+  atualizadoEm          DateTime? @map("atualizado_em")
+  deletadoEm            DateTime? @map("deletado_em")
+
+  usuario              Usuario @relation(fields: [idUsuario], references: [id])
+  configuracaoAgenda   ConfiguracaoAgenda @relation(fields: [idConfiguracaoAgenda], references: [id])
+
+  @@map("fichas")
+}
+
