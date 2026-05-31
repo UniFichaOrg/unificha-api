@@ -2,7 +2,7 @@
 CREATE TYPE "PoliticaAbrangencia" AS ENUM ('MUNICIPAL', 'ESTADUAL', 'FEDERAL');
 
 -- CreateEnum
-CREATE TYPE "TipoPerfil" AS ENUM ('ADMIN', 'ATENDIMENTO', 'USUARIO');
+CREATE TYPE "TipoPerfil" AS ENUM ('ADMIN', 'GESTOR', 'CIDADAO');
 
 -- CreateEnum
 CREATE TYPE "TipoFicha" AS ENUM ('NORMAL', 'PRIORITARIA');
@@ -33,17 +33,17 @@ CREATE TABLE "usuarios" (
     "nome_social" TEXT,
     "nome_usuario" TEXT,
     "login" TEXT NOT NULL,
-    "email" TEXT,
-    "cpf" TEXT,
-    "cns" TEXT,
-    "senha_hash" TEXT,
+    "email" TEXT NOT NULL,
+    "cpf" TEXT NOT NULL,
+    "cns" TEXT NOT NULL,
+    "senha_hash" TEXT NOT NULL,
     "id_maquina" TEXT,
-    "perfil" "TipoPerfil",
-    "logradouro" TEXT,
-    "bairro" TEXT,
-    "cep" TEXT,
-    "municipio" TEXT,
-    "uf" TEXT,
+    "perfil" "TipoPerfil" NOT NULL DEFAULT 'CIDADAO',
+    "logradouro" TEXT NOT NULL,
+    "bairro" TEXT NOT NULL,
+    "cep" TEXT NOT NULL,
+    "municipio" TEXT NOT NULL,
+    "uf" TEXT NOT NULL,
     "criado_em" TIMESTAMP(3) DEFAULT CURRENT_TIMESTAMP,
     "atualizado_em" TIMESTAMP(3),
     "deletado_em" TIMESTAMP(3),
@@ -84,6 +84,15 @@ CREATE TABLE "fichas" (
 
     CONSTRAINT "fichas_pkey" PRIMARY KEY ("id")
 );
+
+-- CreateIndex
+CREATE UNIQUE INDEX "usuarios_login_key" ON "usuarios"("login");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "usuarios_cpf_key" ON "usuarios"("cpf");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "usuarios_cns_key" ON "usuarios"("cns");
 
 -- AddForeignKey
 ALTER TABLE "configuracoes_agenda" ADD CONSTRAINT "configuracoes_agenda_id_ubs_fkey" FOREIGN KEY ("id_ubs") REFERENCES "ubs"("id") ON DELETE RESTRICT ON UPDATE CASCADE;

@@ -1,11 +1,17 @@
 import prisma from '../config/prisma.js';
 
-class UserRepository {
-  async findByLogin(login) {
-    return await prisma.usuario.findFirst({
-      where: { login, deletadoEm: null },
-    });
-  }
+class UsuarioRepository {
+    async findByLoginOrCpf(identificador) {
+        return await prisma.usuario.findFirst({
+            where: {
+                OR: [
+                    { login: identificador },
+                    { cpf: identificador }
+                ],
+                deletadoEm: null,
+            },
+        });
+    }
 
   async findByCpfOrCns(cpf, cns) {
     return await prisma.usuario.findFirst({
@@ -23,6 +29,10 @@ class UserRepository {
     return await prisma.usuario.findFirst({
       where: { id, deletadoEm: null },
     });
+  }
+
+  async findByEmail(email) {
+        return await prisma.usuario.findFirst({ where: { email, deletadoEm: null } });
   }
 
   async findManyActive() {
@@ -65,4 +75,4 @@ class UserRepository {
   }
 }
 
-export default new UserRepository();
+export default new UsuarioRepository();

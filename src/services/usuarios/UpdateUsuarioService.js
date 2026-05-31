@@ -1,7 +1,7 @@
-import UserRepository from '../../repositories/UserRepository.js';
+import UserRepository from '../../repositories/UsuarioRepository.js';
 import AppError from '../../errors/AppError.js';
 
-class UpdateUserService {
+class UpdateUsuarioService {
   async execute(id, data) {
     const userExists = await UserRepository.findById(id);
     if (!userExists) {
@@ -20,4 +20,4 @@ class UpdateUserService {
   }
 }
 
-export default new UpdateUserService();
+export default new UpdateUsuarioService();

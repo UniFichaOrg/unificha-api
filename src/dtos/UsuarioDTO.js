@@ -1,4 +1,4 @@
-export default class UserDTO {
+export default class UsuarioDTO {
   static toResponse(user) {
     if (!user) return null;
     

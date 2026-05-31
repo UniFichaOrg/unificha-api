@@ -1,13 +1,13 @@
 import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
-import UserRepository from '../../repositories/UserRepository.js';
+import UserRepository from '../../repositories/UsuarioRepository.js';
 import AppError from '../../errors/AppError.js';
 import authConfig from '../../config/auth.js';
 
-class AuthenticateUserService {
+class AuthenticateUsuarioService {
   async execute({ login, senha, idMaquina }) {
-    const user = await UserRepository.findByLogin(login);
-    
+    const user = await UserRepository.findByLoginOrCpf(login);
+
     if (!user || !user.senhaHash) {
       throw new AppError('Credenciais incorretas.', 401);
     }
@@ -34,4 +34,4 @@ class AuthenticateUserService {
   }
 }
 
-export default new AuthenticateUserService();
+export default new AuthenticateUsuarioService();

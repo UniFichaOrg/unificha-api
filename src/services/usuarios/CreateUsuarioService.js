@@ -1,8 +1,8 @@
 import bcrypt from 'bcrypt';
-import UserRepository from '../../repositories/UserRepository.js';
+import UserRepository from '../../repositories/UsuarioRepository.js';
 import AppError from '../../errors/AppError.js';
 
-class CreateUserService {
+class CreateUsuarioService {
   async execute(data) {
     const loginExists = await UserRepository.findByLogin(data.login);
     if (loginExists) {
@@ -27,4 +27,4 @@ class CreateUserService {
   }
 }
 
-export default new CreateUserService();
+export default new CreateUsuarioService();

@@ -1,8 +1,9 @@
 import jwt from 'jsonwebtoken';
 import authConfig from '../config/auth.js';
 import AppError from '../errors/AppError.js';
+import UserRepository from '../repositories/UsuarioRepository.js';
 
-export default function ensureAuthenticated(req, res, next) {
+export default async function ensureAuthenticated(req, res, next) {
   const authHeader = req.headers.authorization;
 
   if (!authHeader) {
@@ -13,6 +14,11 @@ export default function ensureAuthenticated(req, res, next) {
 
   try {
     const decoded = jwt.verify(token, authConfig.jwt.secret);
+
+      const userExists = await UserRepository.findById(decoded.sub);
+      if (!userExists) {
+          throw new AppError('Usuário inativo ou não encontrado. Acesso revogado.', 401);
+      }
 
     req.user = {
       id: decoded.sub,

@@ -1,7 +1,7 @@
-import UserRepository from '../../repositories/UserRepository.js';
+import UserRepository from '../../repositories/UsuarioRepository.js';
 import AppError from '../../errors/AppError.js';
 
-class DeleteUserService {
+class DeleteUsuarioService {
   async execute(id) {
     const userExists = await UserRepository.findById(id);
     if (!userExists) {
@@ -12,4 +12,4 @@ class DeleteUserService {
   }
 }
 
-export default new DeleteUserService();
+export default new DeleteUsuarioService();

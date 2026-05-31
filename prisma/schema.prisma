@@ -22,8 +22,8 @@ enum PoliticaAbrangencia {
 
 enum TipoPerfil {
   ADMIN
-  ATENDIMENTO
-  USUARIO
+  GESTOR
+  CIDADAO
 }
 
 enum TipoFicha {
@@ -38,16 +38,16 @@ enum StatusFicha {
 }
 
 model Ubs {
-  id           String    @id @default(uuid()) @db.Uuid
-  nome         String
-  latitude     Decimal?  @db.Decimal(10, 6)
-  longitude    Decimal?  @db.Decimal(10, 6)
-  bairro       String
-  municipio    String
+  id                  String               @id @default(uuid()) @db.Uuid
+  nome                String
+  latitude            Decimal?             @db.Decimal(10, 6)
+  longitude           Decimal?             @db.Decimal(10, 6)
+  bairro              String
+  municipio           String
   politicaAtendimento PoliticaAbrangencia? @map("politica_atendimento")
-  criadoEm     DateTime? @map("criado_em") @default(now())
-  atualizadoEm DateTime? @map("atualizado_em")
-  deletadoEm   DateTime? @map("deletado_em")
+  criadoEm            DateTime?            @default(now()) @map("criado_em")
+  atualizadoEm        DateTime?            @map("atualizado_em")
+  deletadoEm          DateTime?            @map("deletado_em")
 
   configuracoes ConfiguracaoAgenda[]
 
@@ -55,66 +55,68 @@ model Ubs {
 }
 
 model Usuario {
-  id            String  @id @default(uuid()) @db.Uuid
-  nomeCompleto  String  @map("nome_completo")
-  nomeSocial    String? @map("nome_social")
-  nomeUsuario   String? @map("nome_usuario")
-  login         String
-  email         String?
-  cpf           String?
-  cns           String?
-  senhaHash     String? @map("senha_hash")
-  idMaquina     String? @map("id_maquina")
-  perfil        TipoPerfil? 
-  logradouro    String?
-  bairro        String?
-  cep           String?
-  municipio     String?
-  uf            String?
-  criadoEm      DateTime? @map("criado_em") @default(now())
-  atualizadoEm  DateTime? @map("atualizado_em")
-  deletadoEm    DateTime? @map("deletado_em")
+  id                   String     @id @default(uuid()) @db.Uuid
+  nomeCompleto         String     @map("nome_completo")
+  nomeSocial           String?    @map("nome_social")
+  nomeUsuario          String?    @map("nome_usuario")
+  login                String     @unique
+  email                String
+  cpf                  String     @unique
+  cns                  String     @unique
+  senhaHash            String     @map("senha_hash")
+  idMaquina            String?    @map("id_maquina")
+  perfil               TipoPerfil @default(CIDADAO)
+  logradouro           String
+  bairro               String
+  cep                  String
+  municipio            String
+  uf                   String
+  criadoEm             DateTime?  @default(now()) @map("criado_em")
+  atualizadoEm         DateTime?  @map("atualizado_em")
+  deletadoEm           DateTime?  @map("deletado_em")
+  resetPasswordToken   String?    @map("reset_password_token")
+  resetPasswordExpires DateTime?  @map("reset_password_expires")
 
-  fichas        Ficha[]
+  fichas Ficha[]
 
   @@map("usuarios")
 }
 
 model ConfiguracaoAgenda {
-  id               String  @id @default(uuid()) @db.Uuid
-  idUbs            String  @map("id_ubs") @db.Uuid
-  especialidade    String
-  horarioAbertura  String  @map("horario_abertura")
-  horarioFechamento String @map("horario_fechamento")
-  cotaPrioritaria  Int?    @map("cota_prioritaria")
-  cotaGeral        Int?    @map("cota_geral")
-  criadoEm         DateTime? @map("criado_em") @default(now())
-  atualizadoEm     DateTime? @map("atualizado_em")
-  deletadoEm       DateTime? @map("deletado_em")
+  id                     String    @id @default(uuid()) @db.Uuid
+  idUbs                  String    @map("id_ubs") @db.Uuid
+  especialidade          String
+  horarioAbertura        String    @map("horario_abertura")
+  horarioFechamento      String    @map("horario_fechamento")
+  cotaPrioritaria        Int?      @map("cota_prioritaria")
+  cotaGeral              Int?      @map("cota_geral")
+  limiteFichasPorCidadao Int       @default(3) @map("limite_fichas_por_cidadao")
+  criadoEm               DateTime? @default(now()) @map("criado_em")
+  atualizadoEm           DateTime? @map("atualizado_em")
+  deletadoEm             DateTime? @map("deletado_em")
 
-  ubs Ubs @relation(fields: [idUbs], references: [id])
+  ubs    Ubs     @relation(fields: [idUbs], references: [id])
   fichas Ficha[]
 
   @@map("configuracoes_agenda")
 }
 
 model Ficha {
-  id                    String   @id @default(uuid()) @db.Uuid
-  idUsuario             String   @map("id_usuario") @db.Uuid
-  idConfiguracaoAgenda  String   @map("id_configuracao_agenda") @db.Uuid
-  dataAtendimento       DateTime @map("data_atendimento")
-  tipo                  TipoFicha?
-  justificativa         String?
-  status                StatusFicha?
-  auditoriaIdMaquina    String?  @map("auditoria_id_maquina")
-  auditoriaIp           String?  @map("auditoria_ip")
-  criadoEm              DateTime? @map("criado_em") @default(now())
-  atualizadoEm          DateTime? @map("atualizado_em")
-  deletadoEm            DateTime? @map("deletado_em")
+  id                   String       @id @default(uuid()) @db.Uuid
+  idUsuario            String       @map("id_usuario") @db.Uuid
+  idConfiguracaoAgenda String       @map("id_configuracao_agenda") @db.Uuid
+  dataAtendimento      DateTime     @map("data_atendimento")
+  tipo                 TipoFicha?
+  justificativa        String?
+  status               StatusFicha?
+  auditoriaIdMaquina   String?      @map("auditoria_id_maquina")
+  auditoriaIp          String?      @map("auditoria_ip")
+  criadoEm             DateTime?    @default(now()) @map("criado_em")
+  atualizadoEm         DateTime?    @map("atualizado_em")
+  deletadoEm           DateTime?    @map("deletado_em")
 
-  usuario              Usuario @relation(fields: [idUsuario], references: [id])
-  configuracaoAgenda   ConfiguracaoAgenda @relation(fields: [idConfiguracaoAgenda], references: [id])
+  usuario            Usuario            @relation(fields: [idUsuario], references: [id])
+  configuracaoAgenda ConfiguracaoAgenda @relation(fields: [idConfiguracaoAgenda], references: [id])
 
   @@map("fichas")
 }
-
