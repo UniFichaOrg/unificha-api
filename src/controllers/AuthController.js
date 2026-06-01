@@ -1,9 +1,9 @@
 import { authSchema, requestPasswordResetSchema, resetPasswordSchema, changePasswordSchema, updateMachineIdSchema } from '../validators/auth.validator.js';
-import AuthenticateUserService from '../services/usuarios/AuthenticateUsuarioService.js';
-import RequestPasswordResetService from '../services/usuarios/RequestPasswordResetService.js';
-import ResetPasswordService from '../services/usuarios/ResetPasswordService.js';
-import ChangePasswordService from '../services/usuarios/ChangePasswordService.js';
-import UpdateMachineIdService from '../services/usuarios/UpdateMachineIdService.js';
+import AuthenticateUserService from '../services/usuarios/auth/AuthenticateUsuarioService.js';
+import RequestPasswordResetService from '../services/usuarios/security/RequestPasswordResetService.js';
+import ResetPasswordService from '../services/usuarios/security/ResetPasswordService.js';
+import ChangePasswordService from '../services/usuarios/security/ChangePasswordService.js';
+import UpdateMachineIdService from '../services/usuarios/security/UpdateMachineIdService.js';
 import UserRepository from '../repositories/UsuarioRepository.js';
 import UsuarioDTO from '../dtos/UsuarioDTO.js';
 

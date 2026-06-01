@@ -1,6 +1,6 @@
-import UserRepository from '../../repositories/UsuarioRepository.js';
+import UserRepository from '../../../repositories/UsuarioRepository.js';
 import bcrypt from 'bcrypt';
-import AppError from '../../errors/AppError.js';
+import AppError from '../../../errors/AppError.js';
 
 class ChangePasswordService {
     async execute({ userId, senhaAtual, novaSenha }) {

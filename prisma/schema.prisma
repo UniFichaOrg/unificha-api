@@ -23,6 +23,7 @@ enum PoliticaAbrangencia {
 enum TipoPerfil {
   ADMIN
   GESTOR
+  AGENTE
   CIDADAO
 }
 
@@ -55,27 +56,29 @@ model Ubs {
 }
 
 model Usuario {
-  id                   String     @id @default(uuid()) @db.Uuid
-  nomeCompleto         String     @map("nome_completo")
-  nomeSocial           String?    @map("nome_social")
-  nomeUsuario          String?    @map("nome_usuario")
-  login                String     @unique
-  email                String
-  cpf                  String     @unique
-  cns                  String     @unique
-  senhaHash            String     @map("senha_hash")
-  idMaquina            String?    @map("id_maquina")
-  perfil               TipoPerfil @default(CIDADAO)
-  logradouro           String
-  bairro               String
-  cep                  String
-  municipio            String
-  uf                   String
-  criadoEm             DateTime?  @default(now()) @map("criado_em")
-  atualizadoEm         DateTime?  @map("atualizado_em")
-  deletadoEm           DateTime?  @map("deletado_em")
-  resetPasswordToken   String?    @map("reset_password_token")
-  resetPasswordExpires DateTime?  @map("reset_password_expires")
+  id                       String       @id @default(uuid()) @db.Uuid
+  nomeCompleto             String       @map("nome_completo")
+  nomeSocial               String?      @map("nome_social")
+  nomeUsuario              String?      @map("nome_usuario")
+  login                    String       @unique
+  email                    String
+  cpf                      String       @unique
+  cns                      String       @unique
+  senhaHash                String       @map("senha_hash")
+  idMaquina                String?      @map("id_maquina")
+  perfis                   TipoPerfil[] @default([CIDADAO])
+  logradouro               String
+  bairro                   String
+  cep                      String
+  municipio                String
+  uf                       String
+  criadoEm                 DateTime?    @default(now()) @map("criado_em")
+  atualizadoEm             DateTime?    @map("atualizado_em")
+  deletadoEm               DateTime?    @map("deletado_em")
+  resetPasswordToken       String?      @map("reset_password_token")
+  resetPasswordExpires     DateTime?    @map("reset_password_expires")
+  codigoDispositivo        String?      @map("codigo_dispositivo")
+  codigoDispositivoExpires DateTime?    @map("codigo_dispositivo_expires")
 
   fichas Ficha[]
 

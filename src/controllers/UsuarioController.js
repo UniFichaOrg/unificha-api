@@ -1,7 +1,7 @@
 import { createUserSchema, updateUserSchema } from '../validators/usuario.validator.js';
-import CreateUserService from '../services/usuarios/CreateUsuarioService.js';
-import UpdateUserService from '../services/usuarios/UpdateUsuarioService.js';
-import DeleteUserService from '../services/usuarios/DeleteUsuarioService.js';
+import CreateUserService from "../services/usuarios/management/CreateUsuarioService.js";
+import UpdateUserService from '../services/usuarios/management/UpdateUsuarioService.js';
+import DeleteUserService from '../services/usuarios/management/DeleteUsuarioService.js';
 import UserRepository from '../repositories/UsuarioRepository.js';
 import UsuarioDTO from '../dtos/UsuarioDTO.js';
 import AppError from '../errors/AppError.js';

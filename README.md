@@ -1,6 +1,6 @@
 # UniFicha API - Sistema Integrado de Fichas para UBS
 
-API RESTful para o gerenciamento e distribuição digital de fichas de atendimento em Unidades Básicas de Saúde (UBS). Desenvolvida em **Node.js** e **Express.js**, a aplicação visa digitalizar a triagem, erradicar filas presenciais de madrugada e garantir o acesso humanizado e previsível à saúde primária, com forte foco em segurança (LGPD), auditoria e controle de fraudes.
+API RESTful de alta performance para o gerenciamento e distribuição digital de fichas de atendimento em Unidades Básicas de Saúde (UBS). Desenvolvida sobre o ecossistema **Node.js** com o framework **Express.js** e integrada ao ORM **Prisma**, a aplicação visa erradicar filas presenciais de madrugada e garantir o acesso humanizado, previsível e seguro à saúde primária, com estrita conformidade com a LGPD, auditoria e mitigação ativa de fraudes eletrônicas.
 
 ## 👩‍💻 Autores e Equipe (ECT/UFRN)
 
@@ -9,199 +9,140 @@ API RESTful para o gerenciamento e distribuição digital de fichas de atendimen
 - **Escola:** Escola de Ciências e Tecnologia (ECT);
 - **Disciplina:** Ciência e Tecnologia Aplicada 3.
 
-## 📋 Requisitos Técnicos e Arquiteturais 
+## 📋 Requisitos Técnicos e Arquiteturais
 
-O projeto foi construído sob rigorosos padrões de engenharia de software, garantindo que a aplicação não seja apenas funcional, mas escalável e segura.
+O projeto foi construído sob rigorosos padrões de engenharia de software, garantindo acoplamento fraco entre as camadas, escalabilidade horizontal e segurança resiliente.
 
 **Arquitetura e Design Patterns:**
-- ✅ **Separação de Responsabilidades (SoC):** Implementação de arquitetura em camadas puras (`Routes` -> `Controllers` -> `Services` -> `Repositories`);
-- ✅ **Data Transfer Objects (DTOs):** Utilizados para ocultar dados sensíveis (como hashes de senhas e logs de auditoria) nas respostas HTTP, garantindo que o front-end (React) receba apenas o payload necessário.
+- ✅ **Arquitetura em Camadas (Layered Architecture):** Implementação baseada no desacoplamento estrito de responsabilidades onde o fluxo de dados atravessa linearmente barreiras isoladas da aplicação (`Rotas` -> `Controladores` -> `Serviços` -> `Repositórios`);
+- ✅ **Data Transfer Objects (DTOs):** Higienização estrita de payloads na camada de apresentação. Todas as entidades (`Usuario`, `Ubs`, `ConfiguracaoAgenda`, `Ficha`) possuem DTOs dedicados para mascarar colunas sensíveis (hashes de senhas, carimbos de exclusão lógica e logs de auditoria como IPs internos e assinaturas de hardware) antes do envio da resposta HTTP;
+- ✅ **Especialização de Camada de Serviço:** A camada de regras de negócio do domínio de usuários é categorizada e organizada em subdiretórios por afinidade conceitual e semântica: `auth` (autenticação de sessões), `management` (gerenciamento e ciclo de vida de dados cadastrais) e `security` (mecanismos de defesa, redefinições e tokens de segurança).
 
-**Segurança e Conformidade (LGPD):**
-- ✅ **Identidade e Autenticação:** Sistema *stateless* utilizando **JWT (JSON Web Token)**, com expiração configurável;
-- ✅ **Criptografia de Dados em Repouso:** Hashes criptográficos gerados via **Bcrypt** com *salt rounds* definidos para proteção contra ataques de força bruta;
-- ✅ **Controle de Acesso Baseado em Papéis (RBAC):** Proteção de rotas em nível de middleware, garantindo que `CITIZENS` (Cidadãos) não acessem endpoints de `MANAGERS` (Gestores) ou `ADMINS`;
-- ✅ **Device Fingerprinting:** Captura e validação do `Machine ID` para mitigar fraudes e a criação de "bots" de agendamento.
+**Segurança Avançada e Conformidade (LGPD / Diretrizes OWASP):**
+- ✅ **Autenticação Multi-Role (Acúmulo de Papéis):** Suporte nativo a perfis compostos. Um mesmo registro de usuário pode acumular múltiplos cargos no sistema (ex: `['GESTOR', 'CIDADAO']` ou `['AGENTE', 'CIDADAO']`), unificando sua identidade e acumulando privilégios de forma transparente nas camadas superiores;
+- ✅ **Autenticação Híbrida de Entrada:** Flexibilidade de acesso baseada em âncoras imutáveis. A camada de autenticação valida as credenciais tanto pelo apelido (`login`) quanto pelo `CPF`, eliminando bloqueios por esquecimento de credenciais;
+- ✅ **Challenge-Response Device Tracking:** Proteção rígida contra roubo de sessões e hijacking. A alteração ou registro de um novo identificador físico de dispositivo (`idMaquina`) exige re-autenticação por senha atual combinada a um token temporário OTP (One-Time Password) de 6 dígitos enviado ao e-mail do usuário;
+- ✅ **Criptografia e Fluxos de Recuperação Seguros:** Hashes gerados via **Bcrypt** com fator de custo computacional otimizado na camada de persistência. Recuperação de credenciais via tokens criptográficos aleatórios de uso único com expiração em tempo curto (1 hora), blindados contra ataques de lançamento e enumeração de e-mails.
 
-**Persistência e Confiabilidade:**
-- ✅ **SGBD Relacional:** Uso do **PostgreSQL** garantindo propriedades ACID (Atomicidade, Consistência, Isolamento e Durabilidade), vitais para evitar *double-booking* (reservas duplicadas para a mesma vaga);
-- ✅ **Validação Estrita de I/O:** Sanitização e validação de todos os dados de entrada (`req.body`, `req.params`) utilizando bibliotecas de schemas dinâmicos (ex: Zod) antes de atingirem a camada de controle.
-
-## 📖 Documentação (Swagger)
-
-A documentação completa dos endpoints e contratos de dados está disponível via Swagger UI:
-
-- **URL Base (Dev):** `http://localhost:3000/api-docs`;
-- Autenticação via `Bearer Token` necessária para rotas protegidas;
-- Schemas DTO e modelos de persistência documentados;
-- Exemplos de requisição e resposta mapeados para todos os status HTTP.
+**Persistência, Confiabilidade e Tempo Real:**
+- ✅ **Conexões Persistentes Autenticadas (WebSockets):** Sincronização em tempo real da fila do dia, painéis de chamada e atualizações dos cards de agendamento via **Socket.IO**. Toda conexão WebSocket passa por um middleware de interceptação que valida o token JWT (`socket.handshake.auth.token`) antes do handshake;
+- ✅ **SGBD Relacional ACID:** Uso do **PostgreSQL** orquestrado via Prisma PgAdapter na camada de dados, garantindo isolamento transacional rígido e impedindo cenários de *double-booking* de vagas;
+- ✅ **Tratamento de Exceções Nativo do Engine:** O barramento global de erros intercepta falhas conhecidas de restrição de unicidade da camada de persistência (Prisma Error `P2002` e `P2025`), convertendo falhas de infraestrutura em respostas legíveis com status HTTP 409 (Conflict) e 404 (Not Found).
 
 ## 🏗️ Estrutura do Projeto
 
 ```text
 unificha-api/
+├── prisma/
+│   ├── schema.prisma           # Modelagem de dados, enums e mapeamento do PostgreSQL
+│   └── migrations/             # Histórico de evolução controlado do banco de dados
 ├── src/
-│   ├── @types/                 # Definições de tipos customizadas (ex: estender o Request do Express)
-│   ├── config/                 # Configurações globais (Banco de Dados, Variáveis de Ambiente)
-│   ├── modules/                # Divisão por entidades (Domínios do sistema)
-│   │   ├── users/              # Exemplo: Módulo de Usuários (Cidadãos, Agentes, Gestores)
-│   │   │   ├── controllers/    # Recebe req/res e delega para o serviço
-│   │   │   ├── services/       # Regras de negócio (uso do bcrypt e lógica de CRUD)
-│   │   │   ├── repositories/   # Métodos específicos de consulta ao PostgreSQL
-│   │   │   ├── models/         # Definição do schema da entidade (entidades)
-│   │   │   ├── dtos/           # Objetos de Transferência de Dados (entrada e saída)
-│   │   │   ├── validators/     # Schemas de validação de dados (ex: Zod ou Joi)
-│   │   │   └── routes/         # Definição dos endpoints específicos do módulo
-│   │   └── tickets/            # Exemplo: Módulo de Gerenciamento de Fichas (Entidade principal)
-│   ├── shared/                 # Recursos compartilhados por toda a aplicação
-│   │   ├── infra/              # Conexão com DB e drivers externos
-│   │   ├── middlewares/        # Autenticação (JWT), Autorização (RBAC) e Tratamento de Erros
-│   │   └── errors/             # Classe de erro customizada para o projeto
-│   ├── app.js                  # Configuração central do Express (middlewares globais)
-│   └── server.js               # Ponto de entrada da aplicação
-├── .env                        # Credenciais sensíveis
-├── .gitignore                  # Arquivos e pastas ignorados pelo Git
-├── package.json                # Dependências (Express, Bcrypt, PG, etc.)
-└── README.md                   # Documentação técnica da API
+│   ├── app.js                  # Configuração central do Express e acoplamento de middlewares
+│   ├── server.js               # Inicializador do HTTP Server e Bootstrap do Socket.IO
+│   ├── config/                 # Parametrizadores globais (JWT, Adapter Postgres, Socket.IO)
+│   ├── controllers/            # Camada de Controle: Captura de I/O, delegação e mapeamento DTO
+│   ├── dtos/                   # Objetos de Transferência de Dados (Usuario, Ubs, Agenda, Ficha)
+│   ├── errors/                 # Classe de exceções personalizadas de regras de negócio
+│   ├── middlewares/            # Interceptadores: Filtros de autenticação, RBAC Composto e Erros
+│   ├── repositories/           # Camada de Dados: Queries estritas e isoladas do Prisma
+│   ├── routes/                 # Camada de Rotas: Endpoints Express divididos por contexto
+│   ├── utils/                  # Scripts utilitários de inicialização (Seed de Super Admin)
+│   ├── validators/             # Schemas Zod para sanitização e validação Type-safe de I/O
+│   └── services/               # Camada de Serviço: Casos de Uso e Regras de Negócio do Domínio
+│       ├── agenda/             # Criação e atualização de janelas de atendimento
+│       ├── ubs/                # Regras de cadastro e alteração de unidades
+│       ├── fichas/             # Motor transacional de emissão e auditoria de fichas
+│       └── usuarios/           # Especialização da Camada de Serviço de Usuários
+│           ├── auth/           # Autenticação e assinatura de tokens
+│           ├── management/     # Regras de gerenciamento cadastral e ciclo de vida
+│           └── security/       # Alteração de senhas, OTP de dispositivo e resets
+
 ```
 
-├─ src/
+## 🔑 Controle de Acesso Baseado em Papéis Compostos (Multi-Role RBAC)
 
-│  ├─ config/
+O ecossistema valida os privilégios varrendo um array de permissões injetado dentro do payload do token JWT:
 
-│  ├─ controllers/        # Controladores da API
-
-│  ├─ dtos/              # Data Transfer Objects
-
-│  ├─ errors/            # 
-
-│  ├─ middlewares/       # Middlewares (auth, validation, etc)
-
-│  ├─ repositories/      # Camada de acesso a dados
-
-│  ├─ routes/            # Definição das rotas
-
-│  ├─ services/          # Lógica de negócio
-
-│  ├─ validators/        # Validadores de entrada
-
-│  ├─ app.js            # Configuração do Express
-
-│  └─ server.js         # Entrada da aplicação
-
-├─ .env 
-
-├─ .gitignore
-
-├─ package.json
-
-└─ README.md
-
-## 🔑 Autenticação e Autorização
-
-### Autenticação
-
-- Implementação baseada em JWT, garantindo escalabilidade sem sobrecarga de sessão no servidor;
-- Tokens enviados pelo Header: `Authorization: Bearer <token>`;
-- Log de auditoria (Audit Trail) que vincula a autenticação ao `machine_id` (identificador do dispositivo) do usuário logado.
-
-### Controle de Acesso (RBAC - Papéis)
-
-O sistema implementa três níveis hierárquicos de acesso:
-1. **ADMIN (Super Usuário):** Controle total da plataforma, parametrização global e gestão de perfis gerenciais;
-2. **MANAGER (Gestor/Atendente/Médico):** Administração local da UBS. Responsável por definir janelas de marcação, especialidades disponíveis e o balanceamento de cotas de fichas (prioritárias x gerais);
-3. **CITIZEN (Cidadão/Usuário Comum):** Acesso à agenda pessoal, histórico de atendimentos e solicitação de fichas.
+1. **`ADMIN`:** Controle total da plataforma em nível municipal/estadual, parametrização global de abrangências, gestão de staff e execução de remoções físicas (*Hard Delete*);
+2. **`GESTOR`:** Administração operacional local da UBS. Responsável por parametrizar janelas de marcação, especialidades clínicas, balanceamento dinâmico de cotas e controle da fila de chamadas em tempo real;
+3. **`AGENTE`:** Perfil assistencial proxy. Permite que o agente de saúde emita fichas de atendimento em nome de terceiros (cidadãos sem acesso digital ou vulneráveis), vinculando o ato ao seu dispositivo auditável;
+4. **`CIDADAO`:** Perfil padrão de autoatendimento. Permite gerenciar a própria agenda de saúde, histórico pessoal e solicitar/cancelar suas próprias fichas.
 
 ## 📦 Entidades e Modelos de Dados
 
-### Usuários (`User`)
-A entidade de usuário foi modelada para suportar tanto a flexibilidade de acesso quanto o rigor da identificação pública de saúde:
-- **ID** (UUID): Identificador primário interno;
-- **Nome** (`nome`): Nome completo do usuário;
-- **Username** (`username`): Apelido ou nome de exibição (pode ser usado para interações na interface);
-- **Login** (`login`): Credencial principal escolhida pelo usuário para acessar a plataforma;
-- **Email** (`email`): Canal primário para notificações, recuperação de senha e envio de comprovantes da ficha;
-- **Endereço Completo**: Incluindo Rua, Bairro, CEP, Município e Estado (fundamental para regras de territorialização);
-- **CPF**: Chave natural e única, obrigatória para validação de identidade nacional;
-- **Cartão do SUS (CNS)**: Chave natural única, obrigatória para vinculação ao sistema de saúde primária;
-- **Senha**: Armazenada exclusivamente em formato de hash (Bcrypt);
-- **Machine ID**: Assinatura criptográfica do dispositivo/navegador frequentemente utilizado pelo usuário;
-- **Role**: `ADMIN`, `MANAGER` ou `CITIZEN`.
+### Usuários (`usuarios`)
 
-### Unidades Básicas e Configurações (`UBS` & `ScheduleConfig`)
-- **ID** (UUID);
-- **Nome da UBS**;
-- **Localização e Endereço**: Coordenadas geográficas, Bairro, Município etc.
-- **Especialidades** (Ex: Clínica Geral, Pediatria, Odontologia);
-- **Política de Abrangência (Zonagem)**: Flag (booleano ou enum) que define se a UBS atende em "Livre Demanda" (aceita qualquer região) ou "Território Restrito" (somente moradores do bairro/região cadastrada);
-- **Horário de Abertura/Fechamento da Fila Digital**;
-- **Cotas**: Limites configuráveis para fichas `PRIORITY` e `GENERAL`.
+* **ID** (UUID, Chave Primária Interna);
+* **Nome Completo** (`nome_completo`) e Nome Social (`nome_social`);
+* **Login** (`login`, Único) e **CPF** (`cpf`, Único e imutável);
+* **Cartão Nacional de Saúde** (`cns`, Único e imutável);
+* **Email** (`email`) e Senha Hash (`senha_hash`);
+* **Endereço Territorializado**: Logradouro, Bairro, CEP, Município e UF (Obrigatórios);
+* **Perfim/Papéis** (`perfis`, Array de Enums `TipoPerfil`);
+* **Machine ID** (`id_maquina`, Assinatura de hardware vinculada);
+* **Campos de Recuperação**: `reset_password_token`, `reset_password_expires`, `codigo_dispositivo`, `codigo_dispositivo_expires`.
 
-### Fichas / Agendamentos (`Ticket`)
-- **ID** (UUID);
-- **Usuário ID** (Relacionamento com Cidadão);
-- **Especialidade ID** (Relacionamento com Unidades Básicas e Configurações);
-- **Tipo de Atendimento**: `PRIORITY` (Idoso, Gestante, PCD) ou `GENERAL`;
-- **Justificativa (Opcional)**: Campo de texto livre para o paciente descrever brevemente o motivo da consulta (ex: "Renovação de receita", "Febre há 3 dias"), auxiliando na pré-triagem;
-- **Status**: `RESERVED`, `COMPLETED`, `CANCELED`, `NO_SHOW` (Não compareceu);
-- **Timestamp de Emissão e Auditoria**.
+### Unidades Básicas (`ubs`)
 
-## 📜 Regras de Negócio e Casos de Uso (Camada Service)
+* **ID** (UUID);
+* **Nome da Unidade** (`nome`);
+* **Coordenadas Geográficas** (`latitude`, `longitude` para rastreamento espacial);
+* **Território de Atuação**: Bairro e Município;
+* **Política de Abrangência** (`politica_atendimento`): Enum (`MUNICIPAL`, `ESTADUAL`, `FEDERAL`).
 
-As regras abaixo refletem as diretrizes do projeto para garantir um sistema justo, auditável e à prova de cambismo. Toda essa lógica reside isoladamente na pasta `src/services/`.
+### Configurações de Agenda (`configuracoes_agenda`)
 
-### 1. Sistema Dinâmico de Cotas e Prioridades
-A distribuição de fichas não é estática. A API impõe uma validação rigorosa de cotas:
-- **Regra Base:** O sistema obedece a um limite predefinido (ex: 4 fichas `PRIORITY` e 6 fichas `GENERAL` por janela);
-- **Sobrescrita Gerencial:** Um usuário com role `MANAGER` pode alterar essa proporção a qualquer momento (ex: adaptar para 5/5 devido a um mutirão de vacinação de idosos) e a API recalculada imediatamente a disponibilidade para os usuários;
-- **Trava de Cota:** Se as fichas `PRIORITY` esgotarem, pacientes prioritários não podem "roubar" automaticamente vagas `GENERAL` (ou vice-versa) sem autorização prévia da parametrização do gestor.
+* **ID** (UUID) e ID da UBS (Relacionamento de Chave Estrangeira);
+* **Especialidade** (Ex: Clínica Geral, Odontologia, Pediatria);
+* **Janela de Funcionamento**: `horario_abertura` e `horario_fechamento`;
+* **Cotas de Distribuição**: Limite numérico configurável para `cota_prioritaria` e `cota_geral`;
+* **Limite Dinâmico por Cidadão** (`limite_fichas_por_cidadao`, Padrão: 3): Trava configurável por gestores para limitar emissões por CPF/dia na unidade.
 
-### 2. Bloqueio Transacional Anti-Cambismo
-Para evitar a comercialização de vagas ou o monopólio de agendamentos:
-- **Limite Diário:** A API valida no repositório se o `CPF` / `Cartão do SUS` já possui uma ficha ativa para o mesmo dia e UBS. O agendamento simultâneo para a mesma especialidade é sumariamente bloqueado (Erro 409 Conflict);
-- **Rastreabilidade por Dispositivo (`Machine ID`):** Se o sistema detectar múltiplas emissões de fichas para *diferentes CPFs* originadas de uma mesma máquina/IP em um curtíssimo espaço de tempo (comportamento de "cambista" ou bot), o fluxo é temporariamente suspenso e um flag de auditoria é gerado.
+### Fichas de Atendimento (`fichas`)
 
-### 3. Integração de Histórico e Previsibilidade
-- **Agenda do Cidadão:** O usuário (`CITIZEN`) consome um endpoint específico que cruza seus dados e retorna duas matrizes: **Histórico Passado** (fichas concluídas e no-shows) e **Agendamentos Futuros** (com timer, status e número de chamada); 
-- **Penalidade de No-Show:** A regra de negócio permite que o gestor marque uma ficha como `NO_SHOW`. A API pode ser configurada para limitar agendamentos futuros de cidadãos com alto índice de faltas consecutivas.
+* **ID** (UUID);
+* **Relacionamentos**: Usuário (Cidadão) e Configuração da Agenda;
+* **Data do Atendimento** (`data_atendimento`);
+* **Tipo de Cota**: Enum (`NORMAL`, `PRIORITARIA`);
+* **Justificativa**: Texto opcional do paciente para pré-triagem de casos agudos;
+* **Status da Ficha**: Enum (`PENDENTE`, `CONCLUIDA`, `CANCELADA`);
+* **Campos de Auditoria Exclusivos**: `auditoria_id_maquina` e `auditoria_ip`.
 
-### 4. Parametrização Exclusiva por Gestores e Admins
-- A criação de Especialidades, definição de capacidade de atendimento e horários de abertura das "janelas" de marcação de ficha são rotas protegidas. O Service verifica o `req.user.role` e rejeita qualquer tentativa de manipulação que não venha de um `MANAGER` daquela UBS específica ou de um `ADMIN` global.
+## 📜 Regras de Negócio Implementadas (Camada de Serviço)
 
-### 5. Política de Territorialização (Zonagem do SUS)
-O sistema automatiza a triagem geográfica para otimizar o fluxo da rede municipal de saúde:
-- **Atendimento Restrito:** Se a UBS estiver configurada para atender apenas seu território, o Service cruza o bairro cadastrado no perfil do `CITIZEN` com a área de abrangência da UBS. Usuários de fora recebem um aviso (Status 403 Forbidden para a ação) indicando qual a sua UBS de referência;
-- **Exceções e Livre Demanda:** O `MANAGER` pode configurar especialidades específicas (ex: campanhas de vacinação ou farmácia) para aceitarem pessoas de outros bairros ou cidades, flexibilizando a regra de bloqueio geográfico.
+### RN-01: Sobrescrita Gerencial de Parâmetros
 
-### 6. Triagem Humanizada (Justificativa Própria)
-- Durante a emissão da ficha, o `CITIZEN` pode preencher um campo opcional de justificativa;
-- Embora não garanta "fura-fila" automático no sistema digital, esse dado é exibido no painel do `MANAGER` ou enfermeiro da triagem, permitindo que a equipe da UBS identifique casos agudos silenciosos (ex: suspeita de dengue) antes mesmo do paciente chegar à unidade física.
+O gerenciamento de vagas é dinâmico. Usuários com o papel `GESTOR` vinculados à unidade ou `ADMIN` globais podem atualizar a capacidade das cotas (`cotaGeral`, `cotaPrioritaria`) ou alterar o limite diário de fichas por cidadão a qualquer momento, recalculando imediatamente a disponibilidade na API sem necessidade de reinicializar a aplicação.
 
-## ✅ Validações (Camada Validators)
+### RN-02: Bloqueio Anti-Cambismo Dinâmico
 
-- **CPF:** Algoritmo de validação de CPF nacional, rejeitando formatações falsas.
-- **CNS (Cartão SUS):** Validação de comprimento e módulo 11, conforme padrão do Ministério da Saúde.
-- **Senhas:** Mínimo de 8 caracteres, contemplando políticas de força.
-- **Conflito de Horários:** Bloqueio transacional no banco de dados para impedir *double-booking* (duas pessoas pegando a mesma vaga exata).
+A API impede o monopólio e comércio de vagas executando uma query de agregação no momento da solicitação. A camada de serviço conta os agendamentos ativos do cidadão para a data alvo através do repositório. Se o total atingir ou ultrapassar o valor configurado no campo `limiteFichasPorCidadao` daquela agenda específica, a operação é abortada retornando um erro 409 (Conflict).
 
-## 🚨 Tratamento de Erros (Camada Middlewares)
+### RN-03: Triagem Geográfica Semântica (Territorialização)
 
-Todos os erros lançados pelos Services são capturados por um middleware global que formata a resposta e mapeia o Status HTTP adequado:
+O `CreateFichaService` automatiza a validação das diretrizes de zonagem do SUS ao cruzar os dados de endereço do cidadão com a política da UBS:
 
-- **200/201:** Operação bem-sucedida / Recurso criado;
-- **400 (Bad Request):** Falha na validação do Zod (ex: CPF inválido);
-- **401 (Unauthorized):** Token JWT expirado, ausente ou Machine ID não confere;
-- **403 (Forbidden):** Cidadão tentando acessar rota de Gestor;
-- **404 (Not Found):** Especialidade ou Ficha não localizada;
-- **409 (Conflict):** Violação de cota ou usuário tentando emitir 2ª ficha no mesmo dia indevidamente;
-- **422 (Unprocessable Entity):** Erros de lógica de negócio em geral;
-- **500 (Internal Server Error):** Falhas críticas ou quedas no PostgreSQL (com geração de logs em ambiente dev).
+* Política **`MUNICIPAL`**: O sistema valida se o município do usuário é idêntico ao da UBS (comparações sanitizadas via `.toLowerCase().trim()`). Divergências bloqueiam a emissão com status 403 (Forbidden);
+* Política **`ESTADUAL`**: O sistema valida se a UF (Estado) do usuário corresponde à da UBS;
+* Política **`FEDERAL`**: Toda validação geográfica é pulada, permitindo livre demanda de agendamento nacional (utilizado para campanhas de vacinação em massa ou farmácia central).
 
-## 📚 Stack Tecnológica e Dependências
+### RN-04: Imutabilidade de Fichas Finalizadas
 
-- `express`: Minimalista e rápido para orquestração de rotas HTTP;
-- `pg` (node-postgres): Comunicação de baixo nível e alta performance com o banco;
-- `zod`: Declaração de schemas e validação *Type-safe*;
-- `bcrypt`: Algoritmo seguro de hashing (fator de custo configurável);
-- `jsonwebtoken`: Padrão RFC 7519 para tokens de acesso;
-- `swagger-ui-express` & `swagger-jsdoc`: Geração dinâmica de especificações OpenAPI.
+Uma vez que o status de uma ficha de atendimento é alterado pelo gestor para `CONCLUIDA` ou cancelado pelo usuário/sistema para `CANCELADA`, o registro torna-se estritamente imutável. Qualquer tentativa subsequente de modificação de dados ou status disparará uma exceção 422 (Unprocessable Entity).
+
+### RN-05: Imutabilidade Cadastral de Segurança
+
+Em conformidade com padrões de auditoria contra fraudes eletrônicas, os campos `login`, `cpf`, `cns` e o histórico de logs de hardware originais tornam-se completamente imutáveis após a persistência inicial do cadastro, não sendo afetados por rotas de atualização parcial (PATCH/PUT).
+
+## 🚨 Mapeamento Coerente de Status HTTP
+
+O middleware global `errorHandler.js` intercepta exceções vindas das camadas internas e formata o payload de saída sob os seguintes padrões:
+
+* **200 (OK) / 201 (Created):** Sucesso absoluto / Recurso persistido de forma íntegra;
+* **400 (Bad Request):** Erro de validação estrutural capturado pelo Zod na camada de validação (retorna um array detalhado contendo os campos e as mensagens de erro correspondentes);
+* **401 (Unauthorized):** Token JWT inválido, expirado ou assinatura física de dispositivo (`x-machine-id`) em desconformidade com a registrada no payload;
+* **403 (Forbidden):** Violação de privilégios do RBAC Composto ou bloqueio por diretrizes de territorialização geográfica;
+* **404 (Not Found):** Registro solicitado não localizado nas buscas de ID ou capturado pelo erro de infraestrutura `P2025` do Prisma;
+* **409 (Conflict):** Conflito de dados de entrada. Disparado por violação de cotas esgotadas, limite diário estourado ou capturado por falha de chave única do banco de dados (Prisma `P2002` - ex: CPF ou CNS já existentes);
+* **422 (Unprocessable Entity):** Erro de consistência lógica de negócio (ex: horário de abertura posterior ou igual ao de fechamento, ou tentativa de alteração de registro imutável);
+* **500 (Internal Server Error):** Falhas críticas de infraestrutura ou queda de conexão com o PostgreSQL, mascarando detalhes internos do servidor na camada de apresentação e gerando logs estruturados via Pino Logger em ambiente de desenvolvimento.

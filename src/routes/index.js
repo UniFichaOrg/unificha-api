@@ -4,6 +4,7 @@ import authRoutes from './auth.routes.js';
 import ubsRoutes from './ubs.routes.js';
 import agendaRoutes from './agenda.routes.js';
 import fichaRoutes from './ficha.routes.js';
+import dashboardRoutes from './dashboard.routes.js';
 
 const routes = Router();
 
@@ -12,5 +13,6 @@ routes.use('/auth', authRoutes);
 routes.use('/ubs', ubsRoutes);
 routes.use('/agendas', agendaRoutes);
 routes.use('/fichas', fichaRoutes);
+routes.use('/dashboard', dashboardRoutes);
 
 export default routes;

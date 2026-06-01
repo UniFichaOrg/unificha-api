@@ -1,6 +1,6 @@
 import bcrypt from 'bcrypt';
-import UserRepository from '../../repositories/UsuarioRepository.js';
-import AppError from '../../errors/AppError.js';
+import UserRepository from '../../../repositories/UsuarioRepository.js';
+import AppError from '../../../errors/AppError.js';
 
 class CreateUsuarioService {
   async execute(data) {

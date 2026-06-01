@@ -1,13 +1,19 @@
 import AppError from '../errors/AppError.js';
 
 export default function authorizeRole(allowedRoles = []) {
-  return (req, res, next) => {
-    const { role } = req.user;
+    return (req, res, next) => {
+        const { roles } = req.user;
 
-    if (!role || !allowedRoles.includes(role)) {
-      throw new AppError('Acesso negado: Seu perfil não tem permissão para acessar este recurso.', 403);
-    }
+        if (!roles || !Array.isArray(roles)) {
+            throw new AppError('Acesso negado: Perfil não identificado.', 403);
+        }
 
-    return next();
-  };
+        const hasPermission = roles.some(role => allowedRoles.includes(role));
+
+        if (!hasPermission) {
+            throw new AppError('Acesso negado: Seus perfis atuais não têm permissão para acessar este recurso.', 403);
+        }
+
+        return next();
+    };
 }

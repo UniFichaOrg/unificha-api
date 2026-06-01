@@ -1,8 +1,8 @@
 import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
-import UserRepository from '../../repositories/UsuarioRepository.js';
-import AppError from '../../errors/AppError.js';
-import authConfig from '../../config/auth.js';
+import UserRepository from '../../../repositories/UsuarioRepository.js';
+import AppError from '../../../errors/AppError.js';
+import authConfig from '../../../config/auth.js';
 
 class AuthenticateUsuarioService {
   async execute({ login, senha, idMaquina }) {
@@ -20,7 +20,7 @@ class AuthenticateUsuarioService {
     const { secret, expiresIn } = authConfig.jwt;
     const token = jwt.sign(
       {
-        role: user.perfil,
+          roles: user.perfis,
         machine_id: idMaquina || user.idMaquina,
       },
       secret,
