@@ -23,11 +23,21 @@ export const setupWebSocket = (server) => {
     });
 
     io.on('connection', (socket) => {
-        console.log(`[WS] Usuário Autenticado conectado: ${socket.user.subject}`);
+        const userId = socket.user.subject;
+        const userRoles = socket.user.roles || [];
+
+        console.log(`[WS] Usuário conectado: ${userId} com perfis: ${userRoles.join(',')}`);
+
+        socket.join(`user-${userId}`);
 
         socket.on('join-ubs-room', (idUbs) => {
             socket.join(`ubs-${idUbs}`);
-            console.log(`[WS] Usuário ingressou no canal da UBS: ${idUbs}`);
+            console.log(`[WS] Socket ${socket.id} entrou no canal da UBS: ${idUbs}`);
+        });
+
+        socket.on('leave-ubs-room', (idUbs) => {
+            socket.leave(`ubs-${idUbs}`);
+            console.log(`[WS] Socket ${socket.id} saiu do canal da UBS: ${idUbs}`);
         });
 
         socket.on('disconnect', () => {
