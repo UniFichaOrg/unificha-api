@@ -73,6 +73,10 @@ class UsuarioRepository {
       data: { deletadoEm: new Date() },
     });
   }
+
+  async hardDelete(id) {
+        return await prisma.usuario.delete({ where: { id }});
+  }
 }
 
 export default new UsuarioRepository();

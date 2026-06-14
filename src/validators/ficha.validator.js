@@ -8,5 +8,10 @@ export const createFichaSchema = z.object({
 });
 
 export const updateFichaStatusSchema = z.object({
-    status: z.enum(['PENDENTE', 'CONCLUIDA', 'CANCELADA']),
+    status: z.enum(['PENDENTE', 'CHAMADA', 'EM_ATENDIMENTO', 'CONCLUIDA', 'CANCELADA', 'AUSENTE']),
+});
+
+export const chamarProximoSchema = z.object({
+    idConfiguracaoAgenda: z.string().uuid('ID da agenda é obrigatório'),
+    data: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'Formato de data inválido. Use YYYY-MM-DD').optional(),
 });

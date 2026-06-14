@@ -11,8 +11,9 @@ datasource db {
   provider = "postgresql"
 }
 
-// Models based on the provided diagram. Field names use camelCase
-// and are mapped to the original snake_case column names where appropriate.
+// ==========================================
+// ENUMS
+// ==========================================
 
 enum PoliticaAbrangencia {
   MUNICIPAL
@@ -34,9 +35,16 @@ enum TipoFicha {
 
 enum StatusFicha {
   PENDENTE
+  CHAMADA
+  EM_ATENDIMENTO
   CONCLUIDA
   CANCELADA
+  AUSENTE
 }
+
+// ==========================================
+// MODELS
+// ==========================================
 
 model Ubs {
   id                  String               @id @default(uuid()) @db.Uuid
@@ -46,39 +54,46 @@ model Ubs {
   bairro              String
   municipio           String
   politicaAtendimento PoliticaAbrangencia? @map("politica_atendimento")
-  criadoEm            DateTime?            @default(now()) @map("criado_em")
-  atualizadoEm        DateTime?            @map("atualizado_em")
-  deletadoEm          DateTime?            @map("deletado_em")
+
+  filaPausada     Boolean? @default(false) @map("fila_pausada")
+  filaMotivoPausa String?  @map("fila_motivo_pausa")
+
+  criadoEm     DateTime? @default(now()) @map("criado_em")
+  atualizadoEm DateTime? @map("atualizado_em")
+  deletadoEm   DateTime? @map("deletado_em")
 
   configuracoes ConfiguracaoAgenda[]
+  profissionais ProfissionalUbs[]
 
   @@map("ubs")
 }
 
 model Usuario {
-  id                       String       @id @default(uuid()) @db.Uuid
-  nomeCompleto             String       @map("nome_completo")
-  nomeSocial               String?      @map("nome_social")
-  nomeUsuario              String?      @map("nome_usuario")
-  login                    String       @unique
-  email                    String
-  cpf                      String       @unique
-  cns                      String       @unique
-  senhaHash                String       @map("senha_hash")
-  idMaquina                String?      @map("id_maquina")
-  perfis                   TipoPerfil[] @default([CIDADAO])
-  logradouro               String
-  bairro                   String
-  cep                      String
-  municipio                String
-  uf                       String
-  criadoEm                 DateTime?    @default(now()) @map("criado_em")
-  atualizadoEm             DateTime?    @map("atualizado_em")
-  deletadoEm               DateTime?    @map("deletado_em")
-  resetPasswordToken       String?      @map("reset_password_token")
-  resetPasswordExpires     DateTime?    @map("reset_password_expires")
-  codigoDispositivo        String?      @map("codigo_dispositivo")
-  codigoDispositivoExpires DateTime?    @map("codigo_dispositivo_expires")
+  id           String       @id @default(uuid()) @db.Uuid
+  nomeCompleto String       @map("nome_completo")
+  nomeSocial   String?      @map("nome_social")
+  nomeUsuario  String?      @map("nome_usuario")
+  login        String       @unique
+  email        String
+  cpf          String       @unique
+  cns          String       @unique
+  senhaHash    String       @map("senha_hash")
+  idMaquina    String?      @map("id_maquina")
+  perfis       TipoPerfil[] @default([CIDADAO])
+  logradouro   String
+  bairro       String
+  cep          String
+  municipio    String
+  uf           String
+
+  resetPasswordToken       String?   @map("reset_password_token")
+  resetPasswordExpires     DateTime? @map("reset_password_expires")
+  codigoDispositivo        String?   @map("codigo_dispositivo")
+  codigoDispositivoExpires DateTime? @map("codigo_dispositivo_expires")
+
+  criadoEm     DateTime? @default(now()) @map("criado_em")
+  atualizadoEm DateTime? @map("atualizado_em")
+  deletadoEm   DateTime? @map("deletado_em")
 
   fichas Ficha[]
 
@@ -86,17 +101,18 @@ model Usuario {
 }
 
 model ConfiguracaoAgenda {
-  id                     String    @id @default(uuid()) @db.Uuid
-  idUbs                  String    @map("id_ubs") @db.Uuid
+  id                     String @id @default(uuid()) @db.Uuid
+  idUbs                  String @map("id_ubs") @db.Uuid
   especialidade          String
-  horarioAbertura        String    @map("horario_abertura")
-  horarioFechamento      String    @map("horario_fechamento")
-  cotaPrioritaria        Int?      @map("cota_prioritaria")
-  cotaGeral              Int?      @map("cota_geral")
-  limiteFichasPorCidadao Int       @default(3) @map("limite_fichas_por_cidadao")
-  criadoEm               DateTime? @default(now()) @map("criado_em")
-  atualizadoEm           DateTime? @map("atualizado_em")
-  deletadoEm             DateTime? @map("deletado_em")
+  horarioAbertura        String @map("horario_abertura")
+  horarioFechamento      String @map("horario_fechamento")
+  cotaPrioritaria        Int?   @map("cota_prioritaria")
+  cotaGeral              Int?   @map("cota_geral")
+  limiteFichasPorCidadao Int    @default(3) @map("limite_fichas_por_cidadao")
+
+  criadoEm     DateTime? @default(now()) @map("criado_em")
+  atualizadoEm DateTime? @map("atualizado_em")
+  deletadoEm   DateTime? @map("deletado_em")
 
   ubs    Ubs     @relation(fields: [idUbs], references: [id])
   fichas Ficha[]
@@ -110,16 +126,53 @@ model Ficha {
   idConfiguracaoAgenda String       @map("id_configuracao_agenda") @db.Uuid
   dataAtendimento      DateTime     @map("data_atendimento")
   tipo                 TipoFicha?
-  justificativa        String?
-  status               StatusFicha?
-  auditoriaIdMaquina   String?      @map("auditoria_id_maquina")
-  auditoriaIp          String?      @map("auditoria_ip")
-  criadoEm             DateTime?    @default(now()) @map("criado_em")
-  atualizadoEm         DateTime?    @map("atualizado_em")
-  deletadoEm           DateTime?    @map("deletado_em")
+  justificativa        String?      @db.Text
+  status               StatusFicha? @default(PENDENTE)
+
+  iniciadoEm   DateTime? @map("iniciado_em")
+  finalizadoEm DateTime? @map("finalizado_em")
+  observacao   String?   @db.Text
+
+  auditoriaIdMaquina String? @map("auditoria_id_maquina")
+  auditoriaIp        String? @map("auditoria_ip")
+
+  criadoEm     DateTime? @default(now()) @map("criado_em")
+  atualizadoEm DateTime? @map("atualizado_em")
+  deletadoEm   DateTime? @map("deletado_em")
 
   usuario            Usuario            @relation(fields: [idUsuario], references: [id])
   configuracaoAgenda ConfiguracaoAgenda @relation(fields: [idConfiguracaoAgenda], references: [id])
 
   @@map("fichas")
+}
+
+model Profissional {
+  id            String  @id @default(uuid()) @db.Uuid
+  nome          String
+  especialidade String
+  area          String
+  registro      String  @unique
+  ativo         Boolean @default(true)
+
+  criadoEm     DateTime? @default(now()) @map("criado_em")
+  atualizadoEm DateTime? @map("atualizado_em")
+  deletadoEm   DateTime? @map("deletado_em")
+
+  ubs ProfissionalUbs[]
+
+  @@map("profissionais")
+}
+
+model ProfissionalUbs {
+  id             String @id @default(uuid()) @db.Uuid
+  idProfissional String @map("id_profissional") @db.Uuid
+  idUbs          String @map("id_ubs") @db.Uuid
+
+  criadoEm DateTime? @default(now()) @map("criado_em")
+
+  profissional Profissional @relation(fields: [idProfissional], references: [id])
+  ubs          Ubs          @relation(fields: [idUbs], references: [id])
+
+  @@unique([idProfissional, idUbs])
+  @@map("profissional_ubs")
 }

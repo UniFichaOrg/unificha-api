@@ -24,7 +24,7 @@ export const createUserSchema = z.object({
 
   // Sistema
   idMaquina: z.string().optional(),
-  perfil: z.enum(['ADMIN', 'GESTOR', 'CIDADAO']).optional().default('CIDADAO'),
+    perfis: z.array(z.enum(['ADMIN', 'GESTOR', 'AGENTE', 'CIDADAO'])).optional().default(['CIDADAO']),
 });
 
 export const updateUserSchema = z.object({
@@ -39,5 +39,5 @@ export const updateUserSchema = z.object({
   bairro: z.string().min(1, 'O bairro não pode ser vazio').optional(),
   municipio: z.string().min(1, 'O município não pode ser vazio').optional(),
   uf: z.string().length(2, 'A UF deve ter 2 letras').optional(),
-  perfil: z.enum(['ADMIN', 'GESTOR', 'CIDADAO']).optional(),
+  perfis: z.enum(['ADMIN', 'GESTOR', 'AGENTE', 'CIDADAO']).optional(),
 });

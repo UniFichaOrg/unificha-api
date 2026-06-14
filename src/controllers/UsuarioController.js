@@ -62,6 +62,17 @@ class UsuarioController {
         await DeleteUserService.execute(id);
         return res.status(204).send();
     }
+
+    async forceDelete(req, res) {
+        const { id } = req.params;
+
+        if (req.user.id === id) {
+            throw new AppError('Operação inválida: Você não pode excluir a sua própria conta definitivamente.', 400);
+        }
+
+        await UserRepository.hardDelete(id);
+        return res.status(204).send();
+    }
 }
 
 export default new UsuarioController();

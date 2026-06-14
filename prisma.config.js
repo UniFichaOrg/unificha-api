@@ -13,4 +13,7 @@ export default defineConfig({
       output: './src/generated/prisma',
     },
   ],
+    migrations: {
+        seed: 'node ./prisma/seed.js',
+    },
 });

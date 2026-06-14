@@ -18,7 +18,8 @@ usuarioRoutes.put('/:id', UserController.update);
 // Listagem e busca: apenas GESTOR e ADMIN
 usuarioRoutes.get('/', authorizeRole(['ADMIN', 'GESTOR']), UserController.index);
 
-// Soft delete: apenas ADMIN (GESTOR não pode excluir usuários)
+// Soft e hard delete: apenas ADMIN (GESTOR não pode excluir usuários)
 usuarioRoutes.delete('/:id', authorizeRole(['ADMIN']), UserController.delete);
+usuarioRoutes.delete('/:id/hard', authorizeRole(['ADMIN']), UserController.forceDelete);
 
 export default usuarioRoutes;
