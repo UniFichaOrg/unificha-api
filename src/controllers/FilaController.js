@@ -5,7 +5,8 @@ import AppError from '../errors/AppError.js';
 class FilaController {
     async index(req, res) {
         const { idUbs, especialidade, status, tipo, data } = req.query;
-        const { role, id: userId } = req.user;
+        const { roles = [], id: userId } = req.user;
+        const role = roles[0];
 
         if ((role === 'GESTOR' || role === 'AGENTE') && !idUbs) {
             throw new AppError('Acesso negado: Profissionais de saúde precisam informar o ID da UBS.', 403);

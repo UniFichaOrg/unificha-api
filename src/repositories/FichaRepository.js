@@ -60,14 +60,27 @@ class FichaRepository {
                 ...(status && { status }),
                 ...(data && {
                     dataAtendimento: {
-                        gte: new Date(new Date(data).setUTCHours(0,0,0,0)),
-                        lte: new Date(new Date(data).setUTCHours(23,59,59,999)),
+                        gte: new Date(new Date(data).setUTCHours(0, 0, 0, 0)),
+                        lte: new Date(new Date(data).setUTCHours(23, 59, 59, 999)),
                     },
                 }),
                 ...(idUbs && { configuracaoAgenda: { idUbs } }),
             },
             include: { configuracaoAgenda: { include: { ubs: true } }, usuario: true },
             orderBy: { dataAtendimento: 'asc' },
+        });
+    }
+
+    async delete(id) {
+        return await prisma.ficha.update({
+            where: { id },
+            data: { deletadoEm: new Date() },
+        });
+    }
+
+    async forceDelete(id) {
+        return await prisma.ficha.delete({
+            where: { id },
         });
     }
 }

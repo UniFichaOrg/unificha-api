@@ -20,7 +20,8 @@ class AuthenticateUsuarioService {
     const { secret, expiresIn } = authConfig.jwt;
     const token = jwt.sign(
       {
-          roles: user.perfis,
+        roles: user.perfis,
+        role: user.perfis[0] || null,
         machine_id: idMaquina || user.idMaquina,
       },
       secret,

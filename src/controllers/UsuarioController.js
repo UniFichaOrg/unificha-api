@@ -29,7 +29,7 @@ class UsuarioController {
     async show(req, res) {
         const { id } = req.params;
 
-        if (req.user.role === 'CIDADAO' && req.user.id !== id) {
+        if (req.user.roles?.includes('CIDADAO') && req.user.id !== id) {
             throw new AppError('Acesso negado: Você não tem permissão para visualizar este perfil.', 403);
         }
 
@@ -42,7 +42,7 @@ class UsuarioController {
     async update(req, res) {
         const { id } = req.params;
 
-        if (req.user.role === 'CIDADAO' && req.user.id !== id) {
+        if (req.user.roles?.includes('CIDADAO') && req.user.id !== id) {
             throw new AppError('Acesso negado: Você não tem permissão para atualizar este perfil.', 403);
         }
 

@@ -36,11 +36,12 @@ class FichaController {
 
     async index(req, res) {
         const { status, data, idUbs } = req.query;
-        const { id: userId, role } = req.user;
+        const { id: userId, roles = [] } = req.user;
+        const isCidadao = roles.includes('CIDADAO');
 
         let fichas;
 
-        if (role === 'CIDADAO') {
+        if (isCidadao) {
             fichas = await FichaRepository.findManyByUser(userId);
         } else {
             fichas = await FichaRepository.findManyFiltered({ status, data, idUbs });
@@ -58,7 +59,7 @@ class FichaController {
             throw new AppError('Esta ficha já foi finalizada e não pode ser alterada.', 422);
         }
 
-        if (req.user.role === 'CIDADAO') {
+        if (req.user.roles?.includes('CIDADAO')) {
             if (ficha.idUsuario !== req.user.id) throw new AppError('Acesso negado.', 403);
             if (status !== 'CANCELADA') throw new AppError('Cidadão só pode cancelar fichas.', 403);
         }
@@ -196,7 +197,7 @@ class FichaController {
         const ficha = await FichaRepository.findById(req.params.id);
         if (!ficha) throw new AppError('Ficha não encontrada.', 404);
 
-        if (req.user.role === 'CIDADAO' && ficha.idUsuario !== req.user.id) {
+        if (req.user.roles?.includes('CIDADAO') && ficha.idUsuario !== req.user.id) {
             throw new AppError('Acesso negado: Você não possui permissão para ver esta ficha.', 403);
         }
 

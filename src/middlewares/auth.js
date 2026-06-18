@@ -15,14 +15,21 @@ export default async function ensureAuthenticated(req, res, next) {
   try {
     const decoded = jwt.verify(token, authConfig.jwt.secret);
 
-      const userExists = await UserRepository.findById(decoded.sub);
-      if (!userExists) {
-          throw new AppError('Usuário inativo ou não encontrado. Acesso revogado.', 401);
-      }
+    const userExists = await UserRepository.findById(decoded.sub);
+    if (!userExists) {
+      throw new AppError('Usuário inativo ou não encontrado. Acesso revogado.', 401);
+    }
+
+    const roles = Array.isArray(decoded.roles)
+      ? decoded.roles
+      : decoded.role
+        ? [decoded.role]
+        : [];
 
     req.user = {
       id: decoded.sub,
-      role: decoded.role,
+      role: decoded.role || roles[0] || null,
+      roles,
       machine_id: decoded.machine_id,
     };
 

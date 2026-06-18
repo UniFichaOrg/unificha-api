@@ -23,7 +23,7 @@ export const setupWebSocket = (server) => {
     });
 
     io.on('connection', (socket) => {
-        const userId = socket.user.subject;
+        const userId = socket.user.sub;
         const userRoles = socket.user.roles || [];
 
         console.log(`[WS] Usuário conectado: ${userId} com perfis: ${userRoles.join(',')}`);

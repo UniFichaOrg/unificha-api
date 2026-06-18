@@ -3,6 +3,7 @@ import prisma from '../config/prisma.js';
 class BuscaController {
     async executar(req, res) {
         const { q, tipo = 'tudo' } = req.query;
+        const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(q || '');
 
         if (!q || q.length < 2) {
             return res.status(400).json({ status: 'error', message: 'O termo de busca deve conter pelo menos 2 caracteres.' });
@@ -28,14 +29,19 @@ class BuscaController {
         }
 
         if (tipo === 'tudo' || tipo === 'ficha') {
+            const fichaFilters = [
+                { usuario: { nomeCompleto: { contains: q, mode: 'insensitive' } } }
+            ];
+
+            if (isUuid) {
+                fichaFilters.unshift({ id: q });
+            }
+
             promises.push(
                 prisma.ficha.findMany({
                     where: {
                         deletadoEm: null,
-                        OR: [
-                            { id: { contains: q } },
-                            { usuario: { nomeCompleto: { contains: q, mode: 'insensitive' } } }
-                        ]
+                        OR: fichaFilters
                     },
                     include: { usuario: true, configuracaoAgenda: true },
                     take: 10

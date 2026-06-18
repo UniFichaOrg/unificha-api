@@ -4,6 +4,7 @@ import UbsRepository from '../repositories/UbsRepository.js';
 import UbsDTO from '../dtos/UbsDTO.js';
 import { createUbsSchema, updateUbsSchema } from '../validators/ubs.validator.js';
 import AppError from '../errors/AppError.js';
+import prisma from '../config/prisma.js';
 
 class UbsController {
     async create(req, res) {
@@ -73,8 +74,8 @@ class UbsController {
     async agendasAtivas(req, res) {
         const { id } = req.params;
         const targetDate = req.query.data ? new Date(req.query.data) : new Date();
-        const startOfDay = new Date(targetDate.setUTCHours(0,0,0,0));
-        const endOfDay = new Date(targetDate.setUTCHours(23,59,59,999));
+        const startOfDay = new Date(targetDate.setUTCHours(0, 0, 0, 0));
+        const endOfDay = new Date(targetDate.setUTCHours(23, 59, 59, 999));
 
         const agendas = await prisma.configuracaoAgenda.findMany({
             where: { idUbs: id, deletadoEm: null },

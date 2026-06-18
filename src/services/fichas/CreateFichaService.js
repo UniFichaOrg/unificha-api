@@ -1,3 +1,4 @@
+import prisma from '../../config/prisma.js';
 import FichaRepository from '../../repositories/FichaRepository.js';
 import AgendaRepository from '../../repositories/AgendaRepository.js';
 import UserRepository from '../../repositories/UsuarioRepository.js';
