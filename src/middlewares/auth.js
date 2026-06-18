@@ -14,8 +14,9 @@ export default async function ensureAuthenticated(req, res, next) {
 
   try {
     const decoded = jwt.verify(token, authConfig.jwt.secret);
+      console.log("Token decodificado:", decoded);
 
-    const userExists = await UserRepository.findById(decoded.sub);
+      const userExists = await UserRepository.findById(decoded.sub);
     if (!userExists) {
       throw new AppError('Usuário inativo ou não encontrado. Acesso revogado.', 401);
     }
@@ -34,7 +35,8 @@ export default async function ensureAuthenticated(req, res, next) {
     };
 
     const clientMachineId = req.headers['x-machine-id'];
-    if (clientMachineId && clientMachineId !== req.user.machine_id) {
+      console.log("Header x-machine-id:", clientMachineId, "User machine_id:", req.user.machine_id);
+      if (clientMachineId && clientMachineId !== req.user.machine_id) {
       throw new AppError('Assinatura de dispositivo inválida. Risco de clonagem de token.', 401);
     }
 

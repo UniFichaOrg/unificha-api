@@ -1,7 +1,7 @@
-import UserRepository from '../../repositories/UsuarioRepository.js';
-import AppError from '../../errors/AppError.js';
+import UserRepository from '../../../repositories/UsuarioRepository.js';
+import AppError from '../../../errors/AppError.js';
 import crypto from 'crypto';
-import prisma from '../../config/prisma.js';
+import prisma from '../../../config/prisma.js';
 
 class RequestDeviceChangeService {
     async execute(userId) {

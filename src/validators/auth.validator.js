@@ -23,4 +23,5 @@ export const changePasswordSchema = z.object({
 export const updateMachineIdSchema = z.object({
     senhaAtual: z.string().min(1, 'Confirme sua senha para registrar o novo dispositivo'),
     novoIdMaquina: z.string().min(1, 'ID do novo dispositivo é obrigatório'),
+    codigoVerificacao: z.string().min(1, 'O código de verificação é obrigatório'), // Adicione esta linha
 });

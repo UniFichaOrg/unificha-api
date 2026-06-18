@@ -4,7 +4,7 @@ import AppError from '../../../errors/AppError.js';
 
 class CreateUsuarioService {
   async execute(data) {
-    const loginExists = await UserRepository.findByLogin(data.login);
+    const loginExists = await UserRepository.findByLoginOrCpf(data.login);
     if (loginExists) {
       throw new AppError('Este login já está em uso.', 409);
     }
