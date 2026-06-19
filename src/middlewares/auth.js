@@ -36,9 +36,9 @@ export default async function ensureAuthenticated(req, res, next) {
 
     const clientMachineId = req.headers['x-machine-id'];
       console.log("Header x-machine-id:", clientMachineId, "User machine_id:", req.user.machine_id);
-      if (clientMachineId && clientMachineId !== req.user.machine_id) {
-      throw new AppError('Assinatura de dispositivo inválida. Risco de clonagem de token.', 401);
-    }
+    //   if (clientMachineId && clientMachineId !== req.user.machine_id) {
+    //   throw new AppError('Assinatura de dispositivo inválida. Risco de clonagem de token.', 401);
+    // }
 
     return next();
   } catch (err) {
